@@ -13,29 +13,6 @@ conv_channels = 128
 iterations = 40
 
 
-class Denoiser(nn.Module):
-    """This class had been deprecated"""
-    def __init__(self):
-        super().__init__()
-
-        self.denoiser = nn.Sequential(
-            nn.Conv2d(image_channels, 64, 3, padding=1, bias=True),
-            nn.ReLU(inplace=True),
-            nn.Conv2d(64, 64, 3, padding=1, bias=True),
-            nn.ReLU(inplace=True),
-            nn.Conv2d(64, 64, 3, padding=1, bias=True),
-            nn.ReLU(inplace=True),
-            nn.Conv2d(64, 64, 3, padding=1, bias=True),
-            nn.ReLU(inplace=True),
-            nn.Conv2d(64, 2, 3, padding=1, bias=True)
-        )
-
-    def forward(self, input_tensor):
-        """forward function"""
-        input_tensor = self.denoiser(input_tensor)
-        return input_tensor
-
-
 class Optimization(nn.Module):
     """Implementation of Optimization part of DCSC"""
     def __init__(self):
