@@ -36,17 +36,6 @@ class Denoiser(nn.Module):
         return input_tensor
 
 
-class ElementwiseAdd(nn.Module):
-    """Implementation of Elementwise Addition of Matrix(G_X + S_U)"""
-    def __init__(self, G_X):
-        super().__init__()
-
-        self.G_X = G_X
-
-    def forward(self, input_tensor):
-        return self.G_X + input_tensor
-
-
 class Optimization(nn.Module):
     """Implementation of Optimization part of DCSC"""
     def __init__(self):

@@ -17,8 +17,8 @@ from torch.utils.data import DataLoader
 
 
 """global training parameters"""
-use_CUDA = False
-batch_size = 1
+use_CUDA = True
+batch_size = 32
 init_learning_rate = 0.001
 exponent_decay_factor = 0.2
 model_saving_path = './saved_model'
@@ -27,7 +27,7 @@ test_data_path = './data/test'
 max_epoch_num = 200
 iteration_num = 40
 base_loss_function = nn.MSELoss()
-print_per_n_batches = 1
+print_per_n_batches = 2
 
 """judge if GPU(s) is(are) available"""
 if use_CUDA:
@@ -55,7 +55,7 @@ def train(model, epoch, optimizer, data_loader):
     model.train()
 
     for batch_idx, (data, target) in enumerate(data_loader):
-        print('  iteration {} out of {} in training'.format(batch_idx, epoch))
+        print('  iteration {} out of {} in training'.format(batch_idx + 1, epoch + 1))
 
         """migrate data and model to GPU if CUDA is available"""
         if use_CUDA:
@@ -77,7 +77,7 @@ def train(model, epoch, optimizer, data_loader):
         if (batch_idx + 1) % print_per_n_batches:
             print('Train Epoch: {} [{}/{} ({:.0f}%)]\tLoss: {:.6f}\n'
                   .format(epoch, (batch_idx+1) * len(data), len(data_loader.dataset),
-                          100. * (batch_idx+1) / len(data_loader), loss.data[0]))
+                          100. * (batch_idx+1) / len(data_loader), loss.data))
 
 
 def test(model, epoch, data_loader):
@@ -87,6 +87,11 @@ def test(model, epoch, data_loader):
     test_loss = 0
 
     for data, target in data_loader:
+        """migrate data and model to GPU if CUDA is available"""
+        if use_CUDA:
+            data, target = data.cuda(), target.cuda()
+            model.cuda()
+
         output = model(data)
         test_loss += compute_loss(output, target)
 
@@ -103,8 +108,8 @@ if __name__ == '__main__':
     model = backbone.DCSC()
 
     """create dataloader"""
-    train_data_loader = DataLoader(MyDataset(train_data_path))
-    test_data_loader = DataLoader(MyDataset(test_data_path))
+    train_data_loader = DataLoader(MyDataset(train_data_path), batch_size=batch_size, shuffle=True, num_workers=8)
+    test_data_loader = DataLoader(MyDataset(test_data_path), batch_size=batch_size, shuffle=True, num_workers=8)
 
     """link to visdom"""
     # vis = visdom.Visdom()

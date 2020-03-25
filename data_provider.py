@@ -32,7 +32,7 @@ class MyDataset(Dataset):
         """read dataset from file"""
 
     def __len__(self):
-        return (compressed_level + 1) * self.length
+        return compressed_level * self.length
 
     def __getitem__(self, item):
         """Get data with index of item."""
