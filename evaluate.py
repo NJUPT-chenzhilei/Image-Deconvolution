@@ -4,7 +4,7 @@
     under certain conditions; type `show c' for details."""
 
 import os
-import torch.nn
+import torch.nn as nn
 import torch.cuda
 
 """global evaluating parameters"""
@@ -21,7 +21,14 @@ else:
 
 
 def evaluate():
-    pass
+    """evaluate mode"""
+
+
+    """load saved model"""
+    if not os.path.exists(model_path):
+        print('No model named %s' % model_path)
+        exit(-1)
+
 
 
 if __name__ == '__main__':
