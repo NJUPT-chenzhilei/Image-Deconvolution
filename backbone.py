@@ -47,6 +47,10 @@ class LaplacianPyramid(nn.Module):
         """split and up-sample"""
         """shape amendment"""
 
+        # print('kernel type is', end='')
+        # print(self.kernel.is_cuda)
+        # print('img type is', end='')
+        # print(img.is_cuda)
         low = nn.functional.conv2d(img, self.kernel, stride=(2, 2), padding=1)
         # low = tf.nn.conv2d(img, kernel, [1, 2, 2, 1], 'SAME')
         # print(low.size()[0])

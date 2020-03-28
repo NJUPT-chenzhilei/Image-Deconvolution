@@ -18,7 +18,7 @@ from torch.utils.data import DataLoader
 
 """global training parameters"""
 use_CUDA = True
-batch_size = 1
+batch_size = 16
 init_learning_rate = 0.001
 exponent_decay_factor = 0.2
 model_saving_path = './saved_model'
@@ -34,6 +34,7 @@ if use_CUDA:
     use_CUDA = torch.cuda.is_available()
 else:
     print('Your CUDA device(s) is(are) not available! We will use CPU to train.')
+device = torch.device("cuda:1" if use_CUDA else 'cpu')
 
 
 def lr_scheduler(optimizer, epoch):
@@ -63,8 +64,9 @@ def train(model, epoch, optimizer, data_loader, kernel):
 
         """migrate data and model to GPU if CUDA is available"""
         if use_CUDA:
-            data, target = data.cuda(), target.cuda()
-            model.cuda()
+            data = data.to(device)
+            target = target.to(device)
+            model = model.to(device)
 
         """inference data in model"""
         reconstruction = model(data)
@@ -97,8 +99,9 @@ def test(model, epoch, data_loader, kernel):
     for data, target in data_loader:
         """migrate data and model to GPU if CUDA is available"""
         if use_CUDA:
-            data, target = data.cuda(), target.cuda()
-            model.cuda()
+            data.to(device)
+            target.to(device)
+            model.to(device)
 
         output = model(data)
 
@@ -122,14 +125,15 @@ if __name__ == '__main__':
     kernel = np.expand_dims(kernel, 0).repeat(3, axis=0)
     # kernel = np.expand_dims(k, 0).repeat(3, axis=0)
     kernel = torch.from_numpy(kernel)
+    kernel = kernel.to(device)
 
     """create backbone"""
     # model = backbone.DCSC()
     model = backbone.MyNetwork(kernel)
 
     """create dataloader"""
-    train_data_loader = DataLoader(MyDataset(train_data_path), batch_size=batch_size, shuffle=True, num_workers=8)
-    test_data_loader = DataLoader(MyDataset(test_data_path), batch_size=batch_size, shuffle=True, num_workers=8)
+    train_data_loader = DataLoader(MyDataset(train_data_path), batch_size=batch_size, shuffle=True, num_workers=1)
+    test_data_loader = DataLoader(MyDataset(test_data_path), batch_size=batch_size, shuffle=True, num_workers=1)
 
     """link to visdom"""
     # vis = visdom.Visdom()

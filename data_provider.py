@@ -20,6 +20,8 @@ def toTensor(img):
     img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
     img = torch.from_numpy(img.transpose((2, 0, 1)))
     img = img.float().div(255)
+    if img.shape[1] > img.shape[2]:
+        img = img.permute(0, 2, 1)
     return img
 
 

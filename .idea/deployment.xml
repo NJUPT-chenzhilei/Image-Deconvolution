@@ -5,7 +5,7 @@
       <paths name="xuxl1@10.166.33.200:22">
         <serverdata>
           <mappings>
-            <mapping local="$PROJECT_DIR$" web="/" />
+            <mapping deploy="/shiyu/Image-Deconvolution" local="$PROJECT_DIR$" web="/" />
           </mappings>
         </serverdata>
       </paths>
