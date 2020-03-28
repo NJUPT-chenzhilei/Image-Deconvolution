@@ -99,10 +99,13 @@ def test(model, epoch, data_loader, kernel):
     for data, target in data_loader:
         """migrate data and model to GPU if CUDA is available"""
         if use_CUDA:
-            data.to(device)
-            target.to(device)
-            model.to(device)
+            data = data.to(device)
+            target = target.to(device)
+            model = model.to(device)
 
+        """compute Gaussian pyramids of target"""
+        gp = backbone.GaussianPyramid(kernel)
+        target = gp(target)
         output = model(data)
 
         test_loss += compute_loss(output, target)
@@ -145,5 +148,5 @@ if __name__ == '__main__':
     for epoch in range(max_epoch_num):
         print('current_epoch:%d' % (epoch + 1))
         train(model, epoch, optimizer, train_data_loader, kernel)
-        # test(model, epoch, test_data_loader, kernel)
+        test(model, epoch, test_data_loader, kernel)
         lr_scheduler(optimizer, epoch)
