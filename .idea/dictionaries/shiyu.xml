@@ -6,6 +6,7 @@
       <w>cuda</w>
       <w>dcsc</w>
       <w>denoiser</w>
+      <w>laplacian</w>
       <w>optim</w>
       <w>visdom</w>
     </words>

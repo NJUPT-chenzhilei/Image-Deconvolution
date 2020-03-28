@@ -19,7 +19,8 @@ def toTensor(img):
     assert type(img) == np.ndarray, 'the img type is {}, but ndarry expected'.format(type(img))
     img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
     img = torch.from_numpy(img.transpose((2, 0, 1)))
-    return img.float().div(255)
+    img = img.float().div(255)
+    return img
 
 
 class MyDataset(Dataset):

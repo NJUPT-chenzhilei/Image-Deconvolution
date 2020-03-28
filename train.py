@@ -18,7 +18,7 @@ from torch.utils.data import DataLoader
 
 """global training parameters"""
 use_CUDA = True
-batch_size = 32
+batch_size = 1
 init_learning_rate = 0.001
 exponent_decay_factor = 0.2
 model_saving_path = './saved_model'
@@ -45,17 +45,21 @@ def lr_scheduler(optimizer, epoch):
 
 
 def compute_loss(input, target):
-    return base_loss_function(input, target)
+    total_loss = 0
+    loss_function = [base_loss_function, base_loss_function, base_loss_function, base_loss_function, base_loss_function]
+    for i in range(len(input)):
+        total_loss += loss_function[i](input[i], target[i])
+    return total_loss
 
 
-def train(model, epoch, optimizer, data_loader):
+def train(model, epoch, optimizer, data_loader, kernel):
     """training function"""
 
     """enter train mode"""
     model.train()
 
     for batch_idx, (data, target) in enumerate(data_loader):
-        print('  iteration {} out of {} in training'.format(batch_idx + 1, epoch + 1))
+        print('iteration {} out of {} in training'.format(batch_idx + 1, epoch + 1))
 
         """migrate data and model to GPU if CUDA is available"""
         if use_CUDA:
@@ -64,6 +68,10 @@ def train(model, epoch, optimizer, data_loader):
 
         """inference data in model"""
         reconstruction = model(data)
+
+        """compute Gaussian pyramids of target"""
+        gp = backbone.GaussianPyramid(kernel)
+        target = gp(target)
 
         """compute loss"""
         loss = compute_loss(reconstruction, target)
@@ -80,7 +88,7 @@ def train(model, epoch, optimizer, data_loader):
                           100. * (batch_idx+1) / len(data_loader), loss.data))
 
 
-def test(model, epoch, data_loader):
+def test(model, epoch, data_loader, kernel):
     """enter eval mode"""
     model.eval()
 
@@ -93,6 +101,7 @@ def test(model, epoch, data_loader):
             model.cuda()
 
         output = model(data)
+
         test_loss += compute_loss(output, target)
 
     print('After {} epoch, Average loss on test set: {:.4f}.'
@@ -104,8 +113,19 @@ if __name__ == '__main__':
     if not os.path.exists(model_saving_path):
         os.mkdir(model_saving_path)
 
+    """generate Gaussian kernel"""
+    k = np.float32([.0625, .25, .375, .25, .0625])  # Gaussian kernel for image pyramid
+    k = np.outer(k, k)
+    # kernel = k[:, :, None, None] / k.sum() * np.eye(3, dtype=np.float32)
+    kernel = k[:, :] / k.sum()
+    kernel = np.expand_dims(kernel, 0).repeat(3, axis=0)
+    kernel = np.expand_dims(kernel, 0).repeat(3, axis=0)
+    # kernel = np.expand_dims(k, 0).repeat(3, axis=0)
+    kernel = torch.from_numpy(kernel)
+
     """create backbone"""
-    model = backbone.DCSC()
+    # model = backbone.DCSC()
+    model = backbone.MyNetwork(kernel)
 
     """create dataloader"""
     train_data_loader = DataLoader(MyDataset(train_data_path), batch_size=batch_size, shuffle=True, num_workers=8)
@@ -120,6 +140,6 @@ if __name__ == '__main__':
     """train for every epoch"""
     for epoch in range(max_epoch_num):
         print('current_epoch:%d' % (epoch + 1))
-        train(model, epoch, optimizer, train_data_loader)
-        test(model, epoch, test_data_loader)
+        train(model, epoch, optimizer, train_data_loader, kernel)
+        # test(model, epoch, test_data_loader, kernel)
         lr_scheduler(optimizer, epoch)
